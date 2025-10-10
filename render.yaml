@@ -1,0 +1,21 @@
+# This file tells Render how to build and run your backend service.
+# It enables powerful features like Auto-Deploy.
+
+services:
+  # A unique name for your web service. Render will use this in your URL.
+  - name: wellness-analyzer-api
+    # The environment for your service.
+    env: python
+    # The type of service (a web server).
+    type: web
+    # The server region. Frankfurt is the best choice for performance in Kenya.
+    region: frankfurt
+    # Specifies the plan type. 'free' is perfect for this project.
+    plan: free
+    # The branch on your GitHub repository to deploy from.
+    branch: main
+    # The commands Render will run to build your application.
+    buildCommand: "pip install -r requirements.txt"
+    # The command Render will run to start your web server after building.
+    startCommand: "gunicorn app:app"
+
