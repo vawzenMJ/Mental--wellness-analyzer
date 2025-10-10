@@ -1,4 +1,4 @@
-This is a minimal and ultra-stable list of libraries, with pandas removed.
+# Using a minimal and ultra-stable set of libraries for Python 3.9.
 Flask==2.1.2
 gunicorn==20.1.0
 scikit-learn==1.0.2
