@@ -1,8 +1,7 @@
-# Using a set of known stable library versions to ensure compatibility on Render.
-Flask==2.2.2
+This is a minimal and ultra-stable list of libraries, with pandas removed.
+Flask==2.1.2
 gunicorn==20.1.0
-scikit-learn==1.2.2
-joblib==1.2.0
-numpy==1.23.5
-pandas==1.5.3
+scikit-learn==1.0.2
+joblib==1.1.0
+numpy==1.21.5
 flask-cors==3.0.10
