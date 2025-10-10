@@ -1,18 +1,15 @@
-
 services:
   - name: wellness-analyzer-api
     env: python
-    #
-    # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-    # THIS IS THE NEW LINE
-    # We are forcing Render to use Python 3.9 for better stability.
-    pythonVersion: '3.9'
-    # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    #
     type: web
     region: frankfurt
     plan: free
     branch: main
+    # This section forces Render to use a specific, stable Python version.
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.19
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn app:app"
+
 
