@@ -2,7 +2,7 @@ services:
   - name: wellness-analyzer-api
     env: python
     type: web
-    region: frankfurt
+    region: oregon
     plan: free
     branch: main
     # This section forces Render to use a specific, stable Python version.
