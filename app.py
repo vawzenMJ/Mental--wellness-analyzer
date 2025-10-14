@@ -64,8 +64,21 @@ def predict():
 
 # This block allows you to run the server directly from your command line
 # for testing purposes using 'python app.py'
-if __name__ == '__main__':
+#if __name__ == '__main__':
     # It's recommended to run on port 5000 for local testing.
     # Render will handle the port automatically in production.
     #app.run(debug=True, port=5000)
-    print(1)
+    #print(1)
+
+
+
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Hello from Flask on Render!"
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
