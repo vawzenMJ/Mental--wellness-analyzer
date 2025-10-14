@@ -67,4 +67,5 @@ def predict():
 if __name__ == '__main__':
     # It's recommended to run on port 5000 for local testing.
     # Render will handle the port automatically in production.
-    app.run(debug=True, port=5000)
+    #app.run(debug=True, port=5000)
+    print(1)
