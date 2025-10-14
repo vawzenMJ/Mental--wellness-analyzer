@@ -6,4 +6,4 @@ joblib==1.1.0
 numpy==1.21.6
 flask-cors==3.0.10
 setuptools>=68.0.0
-wheel
+wheel=0.41.0
