@@ -70,16 +70,19 @@ def predict():
     #app.run(debug=True, port=5000)
     #print(1)
 
-
-
 from flask import Flask
 from flask_cors import CORS
 
+# Initialize Flask app
 app = Flask(__name__)
+
+# Enable CORS (allow requests from other origins like your Android app)
+CORS(app)
 
 @app.route('/')
 def home():
     return "Hello from Flask on Render!"
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    # Local testing runs on port 5000
+    app.run(host='0.0.0.0', port=5000, debug=True)
