@@ -60,29 +60,3 @@ def predict():
     # The predict method returns an array (e.g., ['Stable']), so we select the first element.
     # We then return this prediction in a standard JSON format.
     return jsonify({'prediction': prediction[0]})
-
-
-# This block allows you to run the server directly from your command line
-# for testing purposes using 'python app.py'
-#if __name__ == '__main__':
-    # It's recommended to run on port 5000 for local testing.
-    # Render will handle the port automatically in production.
-    #app.run(debug=True, port=5000)
-    #print(1)
-
-from flask import Flask
-from flask_cors import CORS
-
-# Initialize Flask app
-app = Flask(__name__)
-
-# Enable CORS (allow requests from other origins like your Android app)
-CORS(app)
-
-@app.route('/')
-def home():
-    return "Hello from Flask on Render!"
-
-if __name__ == '__main__':
-    # Local testing runs on port 5000
-    app.run(host='0.0.0.0', port=5000, debug=True)
