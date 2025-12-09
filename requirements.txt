@@ -1,12 +1,13 @@
-# Core build tools
-pip>=25.1.1
-setuptools>=68.0.0
-wheel>=0.41.0
-
-# Force newer scikit-learn with prebuilt wheels
-scikit-learn==1.5.1  # <-- *** THIS IS THE CRITICAL CHANGE ***
+# Core ML Libraries
+scikit-learn==1.5.1
 numpy>=1.26.0
 scipy>=1.11.0
-gunicorn
+joblib
+
+# Web Server and API Framework
 flask
 Flask-Cors
+gunicorn
+
+# Data Handling
+pandas

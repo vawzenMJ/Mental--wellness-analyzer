@@ -1,62 +1,99 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
-import numpy as np
+import pandas as pd # <-- NEW: Needed for model input data structure
+import json # <-- NEW: Used for error messages
 
 # Initialize the Flask application
 app = Flask(__name__)
 
 # Enable Cross-Origin Resource Sharing (CORS).
-# This is crucial to allow your Android app (or any web app)
-# to communicate with this server.
 CORS(app)
 
-# --- Model Loading ---
-# We use a try-except block to handle errors gracefully if the model files are missing.
-try:
-    # Load the pre-trained TF-IDF vectorizer from the file 'vectorizer.joblib'
-    # This is used to convert text into a numerical format the model understands.
-    vectorizer = joblib.load('vectorizer.joblib')
+# --- Define the Translation Map (Hybrid Bridge Logic) ---
+# Maps the numerical score to the human-readable, keyword-aligned phrase
+FREQUENCY_MAP = {
+    0: "not at all",
+    1: "several days",
+    2: "more than half the days",
+    3: "nearly every day",
+}
 
-    # Load the pre-trained Logistic Regression model from the file 'model.joblib'
+def synthesize_text_from_scores(data: dict) -> str:
+    """Converts the four numerical scores (from the JSON dict) into a single text statement."""
+    
+    # Define keywords to improve NLP model alignment
+    def get_phrasing(score, base_phrase, risk_keyword):
+        if score == 3:
+            return f"{base_phrase} nearly every day, strongly indicating {risk_keyword}."
+        if score == 2:
+            return f"{base_phrase} more than half the days, causing high stress."
+        return f"{base_phrase} {FREQUENCY_MAP.get(score, 'unknown time')}."
+    
+    # Get inputs from the data dictionary
+    q1_text = get_phrasing(data.get('q1', 0), "I felt little interest or pleasure", "lack of motivation")
+    q2_text = get_phrasing(data.get('q2', 0), "I felt down or hopeless", "clinical depression")
+    q3_text = get_phrasing(data.get('q3', 0), "I had trouble with sleep", "fatigue and anxiety")
+    q4_text = get_phrasing(data.get('q4', 0), "I had thoughts of self-harm", "suicidal thoughts") 
+    
+    # Combine into a single statement
+    synthesized_statement = f"{q1_text} {q2_text} {q3_text} {q4_text}"
+    
+    return synthesized_statement
+
+
+# --- Model Loading ---
+try:
+    # Load the pre-trained TF-IDF vectorizer and the Logistic Regression model.
+    vectorizer = joblib.load('vectorizer.joblib')
     model = joblib.load('model.joblib')
 
 except FileNotFoundError:
-    print("Error: Make sure 'model.joblib' and 'vectorizer.joblib' are in the same directory as app.py")
+    print("FATAL ERROR: Make sure 'model.joblib' and 'vectorizer.joblib' are in the same directory.")
     vectorizer = None
     model = None
 
+
 # --- API Endpoint Definition ---
-# This defines the URL endpoint for making predictions.
-# Your app will send requests to 'https://your-api-url.onrender.com/predict'
-
-
 @app.route('/predict', methods=['POST'])
 def predict():
     """
-    Receives text input from the frontend, transforms it using the TF-IDF vectorizer,
-    and returns the model's prediction as a JSON response.
+    Receives numerical scores (q1, q2, q3, q4), synthesizes a text statement,
+    and returns the model's text-based prediction.
     """
-    # First, check if the model and vectorizer were loaded successfully.
     if model is None or vectorizer is None:
         return jsonify({'error': 'Model is not loaded. Check server logs.'}), 500
 
-    # Get the JSON data sent from the Android app
     data = request.get_json()
 
-    # Validate the input to make sure it contains a 'text' field.
-    if not data or 'text' not in data:
-        return jsonify({'error': 'Invalid input: The request must include a "text" field.'}), 400
+    # --- INPUT VALIDATION (Checking for q1, q2, q3, q4) ---
+    required_keys = ['q1', 'q2', 'q3', 'q4']
+    if not data or not all(key in data and isinstance(data[key], int) for key in required_keys):
+        return jsonify({
+            'error': 'Invalid input: The request must include q1, q2, q3, and q4 as integers.'
+        }), 400
+    
+    # --- HYBRID BRIDGE EXECUTION ---
+    try:
+        # 1. Synthesize the text statement from the numerical scores
+        text_input = synthesize_text_from_scores(data)
 
-    text_input = data['text']
+        # 2. Transform the synthesized text using the original TF-IDF vectorizer
+        text_vectorized = vectorizer.transform([text_input])
 
-    # The vectorizer expects a list of documents (even if it's just one).
-    # We transform the input text into its TF-IDF vector representation.
-    text_vectorized = vectorizer.transform([text_input])
+        # 3. Use the original NLP model to make a prediction
+        prediction = model.predict(text_vectorized)
 
-    # Use the loaded model to make a prediction on the vectorized text.
-    prediction = model.predict(text_vectorized)
+        # 4. Return the prediction
+        return jsonify({'prediction': prediction[0]})
 
-    # The predict method returns an array (e.g., ['Stable']), so we select the first element.
-    # We then return this prediction in a standard JSON format.
-    return jsonify({'prediction': prediction[0]})
+    except Exception as e:
+        app.logger.error(f"Prediction failed: {e}")
+        return jsonify({'error': f'An error occurred during prediction: {str(e)}'}), 500
+
+
+# You must use a Procfile in Render to run this:
+# web: gunicorn app:app
+# If you run it locally:
+if __name__ == '__main__':
+    app.run(debug=True)
